@@ -26,7 +26,16 @@ klass.class_eval do
       }
     })
 
-    ::Sass::Engine.new(data, options).render
+    engine = ::Sass::Engine.new(data, options)
+    css = engine.render
+
+    # Copy dependency marks from sass-rails's template in:
+    # sass-rails/lib/sass/rails/template.rb
+    engine.dependencies.each do |dependency|
+      context.depend_on(dependency.options[:filename])
+    end
+
+    css
   rescue ::Sass::SyntaxError => e
     # Annotates exception message with parse line number
     context.__LINE__ = e.sass_backtrace.first[:line]
